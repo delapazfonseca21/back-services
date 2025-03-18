@@ -9,10 +9,14 @@ router.get("/", async (req, res)=>{
     res.json(productos)
 });
 
-router.get('/:id', async (req, res)=>{
-    const {id} = req.params;
-    const producto = await service.findOne(id);
-    res.json(producto);
+router.get('/:id', async (req, res, next)=>{
+    try {
+        const {id} = req.params;
+        const producto = await service.findOne(id);
+        res.json(producto);
+    } catch (err) {
+        next(err);
+    }
 })
 
 
