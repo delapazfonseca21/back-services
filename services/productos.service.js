@@ -1,4 +1,5 @@
 const faker = require('community-faker');
+const boom = require('@hapi/boom');
 
 class ProductsService{
     constructor(){
@@ -22,7 +23,8 @@ class ProductsService{
                 id: faker.datatype.uuid(),
                 name: faker.commerce.productName(),
                 price: parseInt(faker.commerce.price(), 10),
-                Image: faker.image.imageUrl()
+                Image: faker.image.imageUrl(),
+                isBlock: faker.datatype.boolean()
             })
         }
     }
@@ -36,14 +38,20 @@ class ProductsService{
     };
 
     async findOne(id){
-        const name = this.getTotal();
-        return this.productos.find(item => item.id === id);
+        const product = this.productos.find(item => item.id === id);
+        if(!product){
+            throw boom.notFound("producto no encontrado, asquerosa perra");
+        }
+        if(product.isBlock){
+            throw boom.conflict("producto bloqueado");
+        }
+        return product;
     }
 
     async update(id, changes){
         const index = this.productos.findIndex(item => item.id === id);
         if(index === -1){
-            throw new Error("producto no encontrado, asquerosa perra");
+            throw boom.notFound("producto no encontrado, asquerosa perra");
         }
         const producto = this.productos[index];
         this.productos[index] = {
@@ -51,13 +59,12 @@ class ProductsService{
             ...changes
         };
         return this.productos[index];
-       
     }
 
     async delete(id){
         const index = this.productos.findIndex(item => item.id === id);
         if(index === -1){
-            throw new Error("producto no encontrado, asquerosa perra");
+            throw boom.notFound("producto no encontrado, asquerosa perra");
         }
         this.productos.splice(index, 1);
         return {"message": "producto eliminado con éxito, insecto", id};
